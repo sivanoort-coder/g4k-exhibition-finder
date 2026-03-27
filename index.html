@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>G4K Exhibition Finder</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" />
-  <style>* { box-sizing: border-box; } body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f8fafc; }</style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>G4K Exhibition Finder</title>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    const { useState, useMemo, useCallback } = React;
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+import { useState, useMemo, useCallback } from "react";
 
 // Token injected at deploy time — see deploy script
 const GITHUB_TOKEN = ('ghp_7yz9GO9Gz9EJa93r'+ 'RLdekavvRVRBnh0Auy1a');
@@ -272,6 +271,48 @@ const conferences = [
     notes:"Baptist denominational. Exhibitor tables. Cedarville University. Hotel code GARBC.",
     pastEvent:false, local:false, travelDays:1, eventDays:4, nearestAirport:"DAY", flightOrigin:"TUL",
     kiwiOut:"2026-06-28", kiwiBack:"2026-07-03"
+  },
+  {
+    name:"D6 Southeast",
+    url:"https://d6family.com/d6conference/southeast/",
+    dateStart:"2026-04-23", dateEnd:"2026-04-25",
+    location:"Brentwood, TN", city:"Brentwood", state:"TN",
+    venue:"Brentwood Baptist Church, 7777 Concord Rd, Brentwood, TN 37027",
+    attendance:400, attConf:false,
+    booth:{min:500,max:1500,status:"unknown",contact:"D6 Family — info@randallhouse.com / 800-877-7030",contactUrl:"https://d6family.com/contact/",note:"No public exhibitor page found. D6 runs a sponsor/exhibitor model — contact directly. Similar scale to regional D6 Northwest. 40+ speakers confirmed.",sponsorship:false},
+    costs:[
+      {l:"Flights 2× TUL→BNA",v:700,c:"searched",n:"~$350pp RT Apr 2026 TUL→BNA. Search via Kiwi TUL→BNA."},
+      {l:"🎸 Gear",v:70,c:"confirmed",n:"Guitar case domestic extra bag $70 RT."},
+      {l:"Hotel",v:600,c:"searched",n:"Brentwood/Franklin TN ~$150/night × 2 rooms × 2 nights (Courtyard Franklin Cool Springs on-site block)."},
+      {l:"Meals",v:360,c:"estimated",n:"$60/pp × 2 × 3 days."},
+      {l:"Ground",v:120,c:"estimated",n:"Rental car ~$40/day × 3 days."}
+    ],
+    buyer:9,volume:3,conversion:7,quality:7,strategic:5,brand:4,
+    audienceNote:"Family ministry & children's ministry directors. Generational discipleship focus (Deut 6). Pure #1 buyer category.",
+    notes:"D6 Family Ministry — generational discipleship conference. 40+ speakers. No public exhibitor page — must contact. Booth block: Courtyard Franklin Cool Springs.",
+    pastEvent:false, local:false, travelDays:1, eventDays:3, nearestAirport:"BNA", flightOrigin:"TUL",
+    kiwiOut:"2026-04-22", kiwiBack:"2026-04-26"
+  },
+  {
+    name:"NextGen Leaders Conference (AG)",
+    url:"https://nextgen.ag.org/",
+    dateStart:"2027-03-01", dateEnd:"2027-03-03",
+    location:"Nashville, TN", city:"Nashville", state:"TN",
+    venue:"Cornerstone Nashville, 726 W Old Hickory Blvd, Madison, TN 37115",
+    attendance:1000, attConf:false,
+    booth:{min:500,max:2000,status:"unknown",contact:"nextgen@ag.org / 417-862-2781 ext. 4089",contactUrl:"https://nextgen.ag.org/",note:"Exhibitor Registration link exists on homepage but no pricing published. Contact nextgen@ag.org for 2027 prospectus. 2026 edition was Mar 9-11.",sponsorship:false},
+    costs:[
+      {l:"Flights 2× TUL→BNA",v:700,c:"searched",n:"~$350pp RT Mar via TUL→BNA. Search via Kiwi TUL→BNA."},
+      {l:"🎸 Gear",v:70,c:"confirmed",n:"Guitar case domestic extra bag $70 RT."},
+      {l:"Hotel",v:600,c:"searched",n:"Madison/Nashville TN ~$150/night × 2 rooms × 2 nights."},
+      {l:"Meals",v:360,c:"estimated",n:"$60/pp × 2 × 3 days."},
+      {l:"Ground",v:120,c:"estimated",n:"Rental car ~$40/day × 3 days."}
+    ],
+    buyer:9,volume:5,conversion:7,quality:7,strategic:8,brand:6,
+    audienceNote:"Kids, youth & young-adult ministry leaders from Assemblies of God churches nationwide. Pure #1 buyer. AG = largest Pentecostal denomination in the US.",
+    notes:"AG national conference. Exhibitor Registration placeholder on homepage — contact nextgen@ag.org for pricing. Dates shown are estimated 2027 edition.",
+    pastEvent:false, local:false, travelDays:1, eventDays:3, nearestAirport:"BNA", flightOrigin:"TUL",
+    kiwiOut:"2027-02-28", kiwiBack:"2027-03-04"
   }
 ];
 
@@ -371,6 +412,22 @@ const argumentation = {
     quality:"5 — Exhibitor tables without a dedicated expo hall. No scheduled browsing time. Low quality of vendor engagement compared to dedicated ministry conferences.",
     strategic:"3 — Small Baptist association with limited national reach. GARBC churches are geographically spread but modest in number. No major network unlock potential.",
     brand:"3 — ~800 attendees, denominational and regional. Minimal national brand value."
+  },
+  "D6 Southeast": {
+    buyer:"9 — Family ministry and children's ministry directors are the primary audience. D6 is built entirely around Deuteronomy 6 generational discipleship — the exact mindset of a children's pastor who wants kids to give. Pure #1 buyer category.",
+    volume:"3 — Regional event, estimated ~400 attendees. Smaller than the main D6 national conference. Exhibitor floor is modest in scale, but every person in the room is relevant to G4K.",
+    conversion:"7 — Attendees are already engaged with faith-integrated family tools. They are actively looking for resources that deepen children's participation in church life. G4K's giving kiosk fits naturally into the D6 worldview.",
+    quality:"7 — Conference-church venue (Brentwood Baptist) allows for proper demo setup. 40+ speakers drives high engagement. Smaller size means less noise and more 1:1 demo time per attendee.",
+    strategic:"5 — D6 is published by Randall House, a curriculum publisher with reach across many denominations. Relationship with D6/Randall House could unlock curriculum partnership conversations beyond the conference itself.",
+    brand:"4 — ~400 attendees, regional. Modest brand exposure, but in a high-quality niche. The D6 brand is respected across family ministry circles nationally."
+  },
+  "NextGen Leaders Conference (AG)": {
+    buyer:"9 — Kids, youth, and young adult ministry leaders from Assemblies of God churches nationwide. AG is the largest Pentecostal denomination in the US with 13,000+ churches. These are #1 buyers making active decisions about children's ministry tools.",
+    volume:"5 — Estimated ~1,000 attendees. Mid-size national conference with high buyer density. Exhibitor Registration exists on the homepage, indicating a structured vendor presence — exact floor size TBC.",
+    conversion:"7 — AG ministry leaders at this conference are in active discovery mode for resources that help them run better children's and youth ministries. G4K's engaging, tech-forward approach aligns with the Pentecostal culture of innovation and participation.",
+    quality:"7 — Cornerstone Nashville is a well-equipped modern venue. Conference structure includes breakout sessions with natural traffic flow between general sessions — good opportunities for repeated demo interactions.",
+    strategic:"8 — AG has 13,000+ affiliated churches in the US. An endorsement or partnership within the AG network could open a massive pipeline. AG Kidmin (kidmin.ag.org) is a separate but related channel — this conference is a direct door into that ecosystem.",
+    brand:"6 — ~1,000 national attendees. Strong AG brand in Pentecostal/charismatic church circles. Good brand exposure within a committed, fast-growing segment of American Christianity."
   }
 };
 
@@ -429,7 +486,7 @@ function calUrl(conf) {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&location=${loc}`;
 }
 
-function App() {
+export default function App() {
   const [sortCol, setSortCol] = useState("rating");
   const [sortDir, setSortDir] = useState("desc");
   const [tierFilter, setTierFilter] = useState("all");
@@ -899,8 +956,8 @@ function App() {
   );
 }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
 </body>
 </html>
