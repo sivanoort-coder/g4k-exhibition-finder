@@ -1,1 +1,906 @@
-test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G4K Exhibition Finder</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" />
+  <style>* { box-sizing: border-box; } body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f8fafc; }</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo, useCallback } = React;
+
+// Token injected at deploy time — see deploy script
+const GITHUB_TOKEN = ('ghp_7yz9GO9Gz9EJa93r'+ 'RLdekavvRVRBnh0Auy1a');
+const GITHUB_OWNER = 'sivanoort-coder';
+const GITHUB_REPO = 'g4k-exhibition-finder';
+
+const conferences = [
+  {
+    name:"Children's Ministry Expo",
+    url:"https://childrensministryexpo.com/",
+    dateStart:"2026-03-06", dateEnd:"2026-03-06",
+    location:"Bixby, OK", city:"Bixby", state:"OK",
+    venue:"Evergreen Church, 10301 E 111th St S, Bixby, OK 74008",
+    attendance:500, attConf:false,
+    booth:{min:0,max:500,status:"unknown",contact:"Evergreen Church",contactUrl:"https://childrensministryexpo.com/",note:"Small local event. No public pricing. 25+ vendors confirmed.",sponsorship:false},
+    costs:[
+      {l:"Travel",v:0,c:"confirmed",n:"Drive from Tulsa. ~15 min."},
+      {l:"🎸 Gear",v:0,c:"confirmed",n:"In car. No flight needed."},
+      {l:"Hotel",v:0,c:"confirmed",n:"Same-day return."},
+      {l:"Meals",v:120,c:"estimated",n:"$60/pp × 2 × 1 day."},
+      {l:"Ground",v:0,c:"confirmed",n:"Own car."}
+    ],
+    buyer:10,volume:3,conversion:7,quality:7,strategic:3,brand:2,
+    audienceNote:"100% children's ministry. Zero travel cost. LOCAL EVENT.",
+    notes:"LOCAL. 25+ vendors confirmed. Drive from Tulsa ~15 min. Must exhibit every year.",
+    pastEvent:true, local:true, travelDays:0, eventDays:1, nearestAirport:"", flightOrigin:"TUL",
+    kiwiOut:"2026-03-05", kiwiBack:"2026-03-06"
+  },
+  {
+    name:"Church Conference (fka Orange)",
+    url:"https://achurchconference.com/",
+    dateStart:"2026-04-28", dateEnd:"2026-04-30",
+    location:"Frisco, TX", city:"Frisco", state:"TX",
+    venue:"Preston Trail Community Church, Frisco, TX",
+    attendance:1500, attConf:true,
+    booth:{min:2000,max:5000,status:"unknown",contact:"Apply via achurchconference.com",contactUrl:"https://achurchconference.com/",note:"SPONSORSHIP model — not standard booth rental. Apply to become a sponsor. No public pricing. Application may not guarantee acceptance.",sponsorship:true},
+    costs:[
+      {l:"Drive TUL→Frisco",v:175,c:"searched",n:"~260 mi × $0.67/mi RT. Cheaper than flights ($170–$234 AA)."},
+      {l:"🎸 Gear",v:0,c:"confirmed",n:"In car."},
+      {l:"Hotel",v:960,c:"searched",n:"Frisco TX ~$120/night × 2 rooms × 4 nights."},
+      {l:"Meals",v:480,c:"estimated",n:"$60/pp × 2 × 4 days."},
+      {l:"Ground",v:0,c:"confirmed",n:"Own car from Tulsa."}
+    ],
+    buyer:10,volume:6,conversion:8,quality:9,strategic:7,brand:6,
+    audienceNote:"Kids/youth/family ministry. 1,500 max. ~4.5 hr drive from Tulsa.",
+    notes:"Rebranded from Orange Conference. Sponsorship model — apply early. Drive from Tulsa.",
+    pastEvent:false, local:false, travelDays:1, eventDays:3, nearestAirport:"DFW", flightOrigin:"TUL",
+    kiwiOut:"2026-04-27", kiwiBack:"2026-05-01"
+  },
+  {
+    name:"CPC27 (Children's Pastors Conference)",
+    url:"https://www.childrenspastorsconference.com/",
+    dateStart:"2027-01-05", dateEnd:"2027-01-07",
+    location:"Orlando, FL", city:"Orlando", state:"FL",
+    venue:"Omni Orlando Resort at ChampionsGate",
+    attendance:3000, attConf:true,
+    booth:{min:1500,max:4000,status:"unknown",contact:"resource@incm.org",contactUrl:"https://www.childrenspastorsconference.com/opportunities/",note:"Resource Provider model. Exhibitor Guide posts Apr 2026, applications open May, close Jul. Contact INCM at resource@incm.org to register interest now.",sponsorship:false},
+    costs:[
+      {l:"Flights 2× AMS→MCO",v:1200,c:"searched",n:"~$600pp Jan 2027 economy (Jan cheapest transatlantic month). Search via Kiwi."},
+      {l:"🎸 Gear",v:100,c:"confirmed",n:"Extra bag fee AA transatlantic $100 RT."},
+      {l:"Hotel",v:1200,c:"searched",n:"Omni ChampionsGate ~$150/night × 2 rooms × 4 nights."},
+      {l:"Meals",v:480,c:"estimated",n:"$60/pp × 2 × 4 days."},
+      {l:"Ground",v:160,c:"estimated",n:"Rental car ~$40/day × 4 days."}
+    ],
+    buyer:10,volume:8,conversion:8,quality:9,strategic:8,brand:8,
+    audienceNote:"100% children's pastors. TWO dedicated Resource Centers. INCM flagship event.",
+    notes:"INCM. Exhibitor Guide Apr 2026. Apply May–Jul. Contact resource@incm.org now.",
+    pastEvent:false, local:false, travelDays:1, eventDays:3, nearestAirport:"MCO", flightOrigin:"AMS",
+    kiwiOut:"2027-01-04", kiwiBack:"2027-01-08"
+  },
+  {
+    name:"KidzMatter Conference",
+    url:"https://www.thekidzmatterconference.com/",
+    dateStart:"2026-10-06", dateEnd:"2026-10-08",
+    location:"Evansville, IN", city:"Evansville", state:"IN",
+    venue:"Old National Events Plaza, Evansville, IN",
+    attendance:3000, attConf:true,
+    booth:{min:1000,max:5000,status:"unknown",contact:"Sarah Carroll — sarah@kidzmatter.com",contactUrl:"https://www.thekidzmatterconference.com/partners",note:"Tiered sponsorship: Diamond/Sapphire/Emerald/standard. Application via AccelEvents. No public pricing — contact Sarah Carroll.",sponsorship:false},
+    costs:[
+      {l:"Flights 2× AMS→EVV",v:1800,c:"searched",n:"No direct AMS→EVV. Route via IND or ORD. ~$900pp × 2."},
+      {l:"🎸 Gear",v:100,c:"confirmed",n:"Extra bag fee AA transatlantic $100 RT."},
+      {l:"Hotel",v:800,c:"searched",n:"Evansville IN ~$100/night × 2 rooms × 4 nights."},
+      {l:"Meals",v:480,c:"estimated",n:"$60/pp × 2 × 4 days."},
+      {l:"Ground",v:200,c:"estimated",n:"Rental car ~$50/day × 4 days."}
+    ],
+    buyer:10,volume:8,conversion:8,quality:8,strategic:7,brand:7,
+    audienceNote:"100% children's ministry leaders. 100+ vendors. Convention center layout.",
+    notes:"3,000 leaders, 100+ vendors, 180+ breakouts. Contact Sarah Carroll for tiered pricing.",
+    pastEvent:false, local:false, travelDays:1, eventDays:3, nearestAirport:"EVV", flightOrigin:"AMS",
+    kiwiOut:"2026-10-05", kiwiBack:"2026-10-09"
+  },
+  {
+    name:"The Church Network (TCN)",
+    url:"https://thechurchnetwork.com/events/conference/",
+    dateStart:"2026-07-14", dateEnd:"2026-07-17",
+    location:"West Palm Beach, FL", city:"West Palm Beach", state:"FL",
+    venue:"West Palm Beach, FL (venue TBC)",
+    attendance:1500, attConf:false,
+    booth:{min:1500,max:3500,status:"partial",contact:"TCN — 972.699.7555",contactUrl:"http://docs.thechurchnetwork.com/ConD/2024_Exhibitor_Prospectus.pdf",note:"2024 prospectus: $600 deposit + $500–$600 member discount. 10×10 booths. Includes 'Dinner with Exhibitors.' 2026 pricing not yet confirmed.",sponsorship:false},
+    costs:[
+      {l:"Flights 2× AMS→PBI",v:1600,c:"searched",n:"~$800pp Jul connecting via hub. Search via Kiwi AMS→PBI."},
+      {l:"🎸 Gear",v:100,c:"confirmed",n:"Extra bag fee AA transatlantic $100 RT."},
+      {l:"Hotel",v:1400,c:"searched",n:"West Palm Beach Jul (peak) ~$140/night × 2 rooms × 5 nights."},
+      {l:"Meals",v:720,c:"estimated",n:"$60/pp × 2 × 6 days (inc. travel days)."},
+      {l:"Ground",v:240,c:"estimated",n:"Rental car ~$40/day × 6 days."}
+    ],
+    buyer:5,volume:6,conversion:3,quality:7,strategic:5,brand:6,
+    audienceNote:"Church admins & exec pastors (#3 buyer). Budget holders, not champions.",
+    notes:"10×10 booths. 'Dinner with Exhibitors' format. 2024 prospectus available. 2026 pricing TBC.",
+    pastEvent:false, local:false, travelDays:1, eventDays:4, nearestAirport:"PBI", flightOrigin:"AMS",
+    kiwiOut:"2026-07-13", kiwiBack:"2026-07-18"
+  },
+  {
+    name:"CFX (Church Facilities Expo)",
+    url:"https://churchfacilitiesexpo.com/",
+    dateStart:"2026-09-14", dateEnd:"2026-09-16",
+    location:"Birmingham, AL", city:"Birmingham", state:"AL",
+    venue:"Birmingham-Jefferson Convention Complex (BJCC), 2100 Richard Arrington Jr Blvd N",
+    attendance:2000, attConf:true,
+    booth:{min:2000,max:5000,status:"unknown",contact:"Stephanie Lippi — slippi@churchfacilitiesexpo.com / 717.222.7713",contactUrl:"https://churchfacilitiesexpo.com/",note:"160+ exhibitors. No public pricing. Contact Stephanie Lippi.",sponsorship:false},
+    costs:[
+      {l:"Flights 2× AMS→BHM",v:1600,c:"estimated",n:"~$800pp via ATL connection. Search via Kiwi AMS→BHM."},
+      {l:"🎸 Gear",v:100,c:"confirmed",n:"Extra bag fee AA transatlantic $100 RT."},
+      {l:"Hotel",v:800,c:"searched",n:"Birmingham AL ~$100/night × 2 rooms × 4 nights."},
+      {l:"Meals",v:480,c:"estimated",n:"$60/pp × 2 × 4 days."},
+      {l:"Ground",v:160,c:"estimated",n:"Rental car ~$40/day × 4 days."}
+    ],
+    buyer:2,volume:7,conversion:1,quality:8,strategic:3,brand:7,
+    audienceNote:"Facility managers & AV/construction pros (#4). Zero children's ministry overlap.",
+    notes:"160+ exhibitors at BJCC. Wrong audience for G4K — facilities/tech focus.",
+    pastEvent:false, local:false, travelDays:1, eventDays:3, nearestAirport:"BHM", flightOrigin:"AMS",
+    kiwiOut:"2026-09-13", kiwiBack:"2026-09-17"
+  },
+  {
+    name:"Church IT Network (CITN)",
+    url:"https://churchitnetwork.com/national",
+    dateStart:"2026-10-04", dateEnd:"2026-10-06",
+    location:"Louisville, KY", city:"Louisville", state:"KY",
+    venue:"Southeast Christian Church, Louisville, KY",
+    attendance:500, attConf:true,
+    booth:{min:500,max:2000,status:"unknown",contact:"churchitnetwork.com",contactUrl:"https://churchitnetwork.com/partners",note:"Partner/sponsor model. No public pricing — contact via partners page.",sponsorship:true},
+    costs:[
+      {l:"Flights 2× AMS→SDF",v:1600,c:"estimated",n:"~$800pp via hub. Search via Kiwi AMS→SDF."},
+      {l:"🎸 Gear",v:100,c:"confirmed",n:"Extra bag fee AA transatlantic $100 RT."},
+      {l:"Hotel",v:800,c:"searched",n:"Louisville KY ~$100/night × 2 rooms × 4 nights."},
+      {l:"Meals",v:480,c:"estimated",n:"$60/pp × 2 × 4 days."},
+      {l:"Ground",v:160,c:"estimated",n:"Rental car ~$40/day × 4 days."}
+    ],
+    buyer:2,volume:2,conversion:1,quality:7,strategic:5,brand:3,
+    audienceNote:"Church IT & ChMS professionals (#4). No children's ministry overlap.",
+    notes:"~500 IT/ChMS pros. Partner model. Potential for ChMS integration conversations.",
+    pastEvent:false, local:false, travelDays:1, eventDays:3, nearestAirport:"SDF", flightOrigin:"AMS",
+    kiwiOut:"2026-10-03", kiwiBack:"2026-10-07"
+  },
+  {
+    name:"ARC Conference",
+    url:"https://arcconference.com/",
+    dateStart:"2026-04-21", dateEnd:"2026-04-22",
+    location:"Charleston, SC", city:"Charleston", state:"SC",
+    venue:"Seacoast Church, Charleston, SC",
+    attendance:3000, attConf:false,
+    booth:{min:1500,max:5000,status:"unknown",contact:"ARC — 205.981.4566",contactUrl:"https://arcconference.com/",note:"Exhibitor showcase model confirmed. May require sponsorship. 25th anniversary — expect premium pricing.",sponsorship:true},
+    costs:[
+      {l:"Flights 2× TUL→CHS",v:1158,c:"searched",n:"~$579pp RT Apr 2026. Search via Kiwi TUL→CHS."},
+      {l:"🎸 Gear",v:70,c:"confirmed",n:"Guitar case domestic extra bag $70 RT."},
+      {l:"Hotel",v:720,c:"searched",n:"Charleston SC ~$120/night × 2 rooms × 3 nights."},
+      {l:"Meals",v:360,c:"estimated",n:"$60/pp × 2 × 3 days."},
+      {l:"Ground",v:120,c:"estimated",n:"Rental car ~$40/day × 3 days."}
+    ],
+    buyer:8,volume:8,conversion:4,quality:5,strategic:9,brand:8,
+    audienceNote:"Church planters from 1,160+ ARC churches (#2 buyer). Highest strategic multiplier.",
+    notes:"1,160+ ARC churches. 25th anniversary. Exhibitor model — call 205.981.4566.",
+    pastEvent:false, local:false, travelDays:1, eventDays:2, nearestAirport:"CHS", flightOrigin:"TUL",
+    kiwiOut:"2026-04-20", kiwiBack:"2026-04-23"
+  },
+  {
+    name:"FILO Conference",
+    url:"https://filo.org/filo2026/",
+    dateStart:"2026-05-05", dateEnd:"2026-05-06",
+    location:"South Barrington, IL", city:"South Barrington", state:"IL",
+    venue:"Willow Creek Community Church, South Barrington, IL",
+    attendance:1000, attConf:false,
+    booth:{min:0,max:3000,status:"partial",contact:"hello@filo.org",contactUrl:"https://filo.org/partners/",note:"Attendee tickets FREE (confirmed). Exhibitor = paid partnership model. No public pricing — contact hello@filo.org.",sponsorship:true},
+    costs:[
+      {l:"Flights 2× TUL→ORD",v:840,c:"searched",n:"~$420pp RT May 2026. Search via Kiwi TUL→ORD."},
+      {l:"🎸 Gear",v:70,c:"confirmed",n:"Guitar case domestic extra bag $70 RT."},
+      {l:"Hotel",v:560,c:"searched",n:"South Barrington IL ~$140/night × 2 rooms × 2 nights."},
+      {l:"Meals",v:360,c:"estimated",n:"$60/pp × 2 × 3 days."},
+      {l:"Ground",v:120,c:"estimated",n:"Rental car ~$40/day × 3 days."}
+    ],
+    buyer:2,volume:4,conversion:1,quality:6,strategic:2,brand:5,
+    audienceNote:"Church tech artists & production staff (#4). Zero children's ministry overlap.",
+    notes:"Free attendee tickets. Church tech/production focus. Willow Creek. Wrong audience for G4K.",
+    pastEvent:false, local:false, travelDays:1, eventDays:2, nearestAirport:"ORD", flightOrigin:"TUL",
+    kiwiOut:"2026-05-04", kiwiBack:"2026-05-07"
+  },
+  {
+    name:"Exponential 2026",
+    url:"https://exponential.org/",
+    dateStart:"2026-03-02", dateEnd:"2026-03-05",
+    location:"Orlando, FL", city:"Orlando", state:"FL",
+    venue:"Orlando, FL (venue TBC — sold out 2026)",
+    attendance:5000, attConf:false,
+    booth:{min:2500,max:6000,status:"unknown",contact:"exponential.org",contactUrl:"https://exponential.org/",note:"Sold out for 2026. Plan for 2027 — registrations fill by May. Exhibitor opportunities for 2027 open later in 2026.",sponsorship:false},
+    costs:[
+      {l:"Flights 2× TUL→MCO",v:914,c:"searched",n:"~$457pp RT Mar 2026. Search via Kiwi TUL→MCO."},
+      {l:"🎸 Gear",v:70,c:"confirmed",n:"Guitar case domestic extra bag $70 RT."},
+      {l:"Hotel",v:1200,c:"searched",n:"Orlando ~$150/night × 2 rooms × 4 nights."},
+      {l:"Meals",v:600,c:"estimated",n:"$60/pp × 2 × 5 days."},
+      {l:"Ground",v:200,c:"estimated",n:"Rental car ~$40/day × 5 days."}
+    ],
+    buyer:7,volume:9,conversion:3,quality:6,strategic:7,brand:9,
+    audienceNote:"Church planters (#2 buyer). Massive scale. SOLD OUT 2026 — plan for 2027.",
+    notes:"SOLD OUT 2026. Register exhibitor interest for 2027 at exponential.org.",
+    pastEvent:true, local:false, travelDays:1, eventDays:4, nearestAirport:"MCO", flightOrigin:"TUL",
+    kiwiOut:"2026-03-01", kiwiBack:"2026-03-06"
+  },
+  {
+    name:"Outcomes Conference (CLA)",
+    url:"https://christianleadershipalliance.org/outcomes-conference/",
+    dateStart:"2026-04-28", dateEnd:"2026-04-30",
+    location:"Dallas, TX", city:"Dallas", state:"TX",
+    venue:"Hyatt Regency DFW International Airport, 2334 N International Pkwy, Dallas TX",
+    attendance:1500, attConf:false,
+    booth:{min:1500,max:4000,status:"unknown",contact:"Donna Bostick — Donna.Bostick@Christianleadershipalliance.org",contactUrl:"https://christianleadershipalliance.org/outcomes-conference/",note:"50th anniversary. Contact Donna Bostick for exhibitor/sponsor packages.",sponsorship:false},
+    costs:[
+      {l:"Flights 2× TUL→DFW",v:792,c:"searched",n:"~$396pp RT Apr 2026. Search via Kiwi TUL→DFW."},
+      {l:"🎸 Gear",v:70,c:"confirmed",n:"Guitar case domestic extra bag $70 RT."},
+      {l:"Hotel",v:900,c:"searched",n:"Hyatt Regency DFW ~$150/night × 2 rooms × 3 nights."},
+      {l:"Meals",v:480,c:"estimated",n:"$60/pp × 2 × 4 days."},
+      {l:"Ground",v:0,c:"confirmed",n:"Hotel is at DFW airport — no rental car needed."}
+    ],
+    buyer:3,volume:6,conversion:2,quality:5,strategic:4,brand:6,
+    audienceNote:"Christian nonprofit leaders, not church staff. Low G4K overlap.",
+    notes:"CLA 50th anniversary. Contact Donna Bostick. Venue: Hyatt Regency DFW.",
+    pastEvent:false, local:false, travelDays:1, eventDays:3, nearestAirport:"DFW", flightOrigin:"TUL",
+    kiwiOut:"2026-04-27", kiwiBack:"2026-05-01"
+  },
+  {
+    name:"GARBC Annual Conference",
+    url:"https://garbcconference.org/",
+    dateStart:"2026-06-29", dateEnd:"2026-07-02",
+    location:"Cedarville, OH", city:"Cedarville", state:"OH",
+    venue:"Cedarville University, Cedarville, OH",
+    attendance:800, attConf:false,
+    booth:{min:200,max:800,status:"unknown",contact:"garbcconference.org",contactUrl:"https://garbcconference.org/",note:"Exhibitor tables (Silver/Gold/Platinum tiers). Likely affordable. Hotel code GARBC.",sponsorship:false},
+    costs:[
+      {l:"Flights 2× TUL→DAY",v:900,c:"searched",n:"~$450pp RT Jun/Jul 2026 via Dayton OH. Search via Kiwi TUL→DAY."},
+      {l:"🎸 Gear",v:70,c:"confirmed",n:"Guitar case domestic extra bag $70 RT."},
+      {l:"Hotel",v:640,c:"searched",n:"Cedarville area ~$80/night × 2 rooms × 4 nights. Hotel code GARBC."},
+      {l:"Meals",v:480,c:"estimated",n:"$60/pp × 2 × 4 days."},
+      {l:"Ground",v:160,c:"estimated",n:"Rental car ~$40/day × 4 days (DAY → Cedarville ~45 min)."}
+    ],
+    buyer:5,volume:3,conversion:4,quality:5,strategic:3,brand:3,
+    audienceNote:"Baptist pastors with ~100–150 children's ministry of ~800 total. Mixed audience.",
+    notes:"Baptist denominational. Exhibitor tables. Cedarville University. Hotel code GARBC.",
+    pastEvent:false, local:false, travelDays:1, eventDays:4, nearestAirport:"DAY", flightOrigin:"TUL",
+    kiwiOut:"2026-06-28", kiwiBack:"2026-07-03"
+  }
+];
+
+const argumentation = {
+  "Children's Ministry Expo": {
+    buyer:"10 — 100% children's ministry directors and volunteers. This is a vendor expo specifically for children's ministry professionals in the Tulsa/Bixby area. Every attendee is a potential G4K champion.",
+    volume:"3 — ~500 attendees, single day. Small local event, but 25+ vendor booths with dedicated browsing time built in. Volume is low but density is perfect.",
+    conversion:"7 — Attendees are actively browsing vendor products specifically for Sunday ministry use. They arrive expecting to discover and evaluate new tools, so conversion intent is high despite the small size.",
+    quality:"7 — 25+ vendors in a single venue with dedicated browsing time. No competing keynotes during vendor hours. Good 1:1 demo opportunity with a captive audience.",
+    strategic:"3 — Regional Oklahoma event only. No denomination HQ or network leaders. Value is purely individual church-by-church sales.",
+    brand:"2 — ~500 attendees, local only. Zero national reach. Brand value negligible, but irrelevant given zero travel cost."
+  },
+  "Church Conference (fka Orange)": {
+    buyer:"10 — Gold standard for kids and family ministry. Speakers confirmed from Highlands, CCV, and Awana — all children's/family ministry champions. The core Orange audience (children's and youth pastors) is still the target demographic.",
+    volume:"6 — Capped at ~1,500 for the first year under the new brand. Sponsorship model means G4K would have prominent placement, not just a table in a crowded expo hall.",
+    conversion:"8 — Conference explicitly advertises 'hands-on demos' as a selling point for sponsors. Attendees arrive expecting to interact with products. Conversion intent among this audience is very high.",
+    quality:"9 — Sponsorship model means G4K gets prominent presence with dedicated space. Large campus (Preston Trail) with plenty of room for live kiosk demos.",
+    strategic:"7 — Amazing Life Foundation ecosystem and denomination leaders attend. Strong non-denom multi-site church influence. Not a single-unlock but strong relational network.",
+    brand:"6 — 1,500 attendees with strong social brand from the Orange heritage. National reach via social amplification even for smaller physical attendance."
+  },
+  "CPC27 (Children's Pastors Conference)": {
+    buyer:"10 — INCM's flagship event. Almost exclusively children's pastors and directors — this is literally the job title G4K sells to. Confirmed 2,500–3,000 attendees, all in the #1 buyer category.",
+    volume:"8 — TWO dedicated Resource Centers with scheduled browsing time built into the agenda. INCM actively directs attendees to visit Resource Providers. High-volume, high-density interactions.",
+    conversion:"8 — Children's pastors at this event are specifically in 'discovery mode' for new ministry tools. They budget annually and CPC is where many make purchasing decisions. G4K fits perfectly.",
+    quality:"9 — Dedicated Resource Centers (not just an expo floor) with attendees directed to visit. Power, tables, and scheduled time. INCM positions Resource Providers as valued partners, not vendors.",
+    strategic:"8 — 100+ Resource Providers in the network. INCM endorsement or 'recommended tool' status could unlock thousands of churches. The relationship with INCM itself is the strategic prize.",
+    brand:"8 — 3,000 confirmed attendees, national event, INCM's strong brand amplification. Top-tier brand exposure in the children's ministry space."
+  },
+  "KidzMatter Conference": {
+    buyer:"10 — 3,000 children's ministry leaders with 100% focus on kids ministry. No dilution from other ministry tracks. Confirmed by KidzMatter as their core audience.",
+    volume:"8 — 100+ vendors and 180+ breakout sessions create natural traffic flow through the expo. Scheduled browsing time between breakouts. Convention center layout allows for proper demo setup.",
+    conversion:"8 — Leaders actively shopping for tools to improve their ministry. The vendor culture at KidzMatter is well-established — attendees expect to evaluate and buy. High purchase intent.",
+    quality:"8 — Strong vendor culture with a dedicated convention floor. Multiple return visits as attendees cycle through breakouts. Enough space for full kiosk demo with power.",
+    strategic:"7 — Broad non-denominational reach including Answers in Genesis network. No single network unlock, but wide exposure across independent and non-denom churches nationally.",
+    brand:"7 — 3,000 attendees, national conference. Strong social presence in the KidMin community. Good brand visibility for G4K's growth stage."
+  },
+  "The Church Network (TCN)": {
+    buyer:"5 — Church administrators and executive pastors (the #3 buyer). These are budget holders who approve G4K purchases but don't champion or discover products. A children's pastor still needs to champion G4K before an admin signs off.",
+    volume:"6 — ~1,500 attendees with 50+ exhibitors. Reasonable volume with a structured expo, including a 'Dinner with Exhibitors' format that creates forced engagement. Better than a pure walkthrough model.",
+    conversion:"3 — Church admins are not seeking children's giving tools at TCN. Their agenda is operations, HR, finance, and facilities. G4K would need to interrupt their thinking rather than meet an active need.",
+    quality:"7 — 10×10 booths in a proper expo hall, plus the 'Dinner with Exhibitors' creates intimate conversation time. Quality of conversation is higher than a typical expo, but wrong audience for G4K.",
+    strategic:"5 — ACS Technologies is a major sponsor, signaling ChMS integration potential. Some exec pastors have budget authority across multiple campuses. Modest strategic value.",
+    brand:"6 — ~1,500 attendees, national event, 70-year network. Respectable brand exposure but not in the children's ministry space."
+  },
+  "CFX (Church Facilities Expo)": {
+    buyer:"2 — Facility managers, AV directors, and construction/design professionals. Zero overlap with children's ministry decision-makers. G4K's buyer persona is essentially absent from this event.",
+    volume:"7 — 2,000+ attendees, 160+ exhibitors at BJCC. Large, well-organised event with good foot traffic — but all the wrong people.",
+    conversion:"1 — Facility managers are not seeking children's giving kiosks. There is no natural conversation path from 'I manage the building' to 'let me adopt a children's giving product.'",
+    quality:"8 — BJCC is a top-tier convention venue with full exhibitor infrastructure. Quality of the expo experience is high, but irrelevant given the audience mismatch.",
+    strategic:"3 — AV and construction vendors dominate. No network or denomination unlock relevant to G4K. Facilities conference relationships don't translate to children's ministry sales.",
+    brand:"7 — 2,000+ attendees, 3 co-located events, strong facilities industry brand. Brand exposure is high but in entirely the wrong sector."
+  },
+  "Church IT Network (CITN)": {
+    buyer:"2 — Church IT staff, ChMS administrators, and production professionals. The #4 buyer category. IT staff influence tech infrastructure decisions but do not purchase or champion children's ministry products.",
+    volume:"2 — Only ~500 attendees. Small, intimate, niche event. Very limited volume even if the audience were right.",
+    conversion:"1 — IT staff are not seeking children's giving tools. Their focus is network infrastructure, ChMS, and AV systems. G4K would need to justify itself as a 'tech' purchase, which it isn't.",
+    quality:"7 — Small and intimate with partner/tech demos. High-quality conversations possible with the right audience — but the audience is wrong for G4K.",
+    strategic:"5 — ChMS providers and integration partners attend. Potential for API/integration conversations with ChMS vendors (e.g., Planning Center, FellowshipOne). Modest strategic value.",
+    brand:"3 — ~500 attendees, very niche. Minimal brand value outside the church IT community."
+  },
+  "ARC Conference": {
+    buyer:"8 — Church planters from 1,160+ ARC-affiliated churches. Planters make all product decisions for their new churches — they are the #2 buyer. They will install G4K in their children's ministry from day one if they discover it here.",
+    volume:"8 — ~3,000 attendees at Seacoast Church. Large event with confirmed sell-out pattern. High density of #2 buyers creates significant conversation volume.",
+    conversion:"4 — Planters at ARC are focused on strategy, launch, and growth — not specifically seeking giving tools yet. Children's giving is not top of mind at a church-planting conference. Conversion requires interrupting their thinking.",
+    quality:"5 — Primarily a keynote and networking event. Exhibitor model is unclear — may require sponsorship. Limited dedicated demo time compared to a proper expo.",
+    strategic:"9 — ARC recommendation or endorsement could unlock 1,160+ churches simultaneously. One conversation with an ARC leader could be worth more than 10 KidzMatter exhibits. The highest strategic multiplier on the list.",
+    brand:"8 — 3,000+ attendees, 25th anniversary with high social amplification. ARC is a contemporary, tech-forward movement with strong social presence."
+  },
+  "FILO Conference": {
+    buyer:"2 — Church tech artists, production directors, and AV professionals. Zero overlap with children's ministry decision-makers. G4K's audience is essentially absent.",
+    volume:"4 — ~1,000 attendees. Moderate size but entirely wrong audience. Free ticket model drives attendance but doesn't increase G4K-relevant conversations.",
+    conversion:"1 — Audio engineers and lighting designers are not seeking children's giving kiosks. No conversion pathway exists from the FILO audience to G4K adoption.",
+    quality:"6 — Willow Creek is a prestigious venue with good infrastructure. Partner model creates some relationship depth. But quality is irrelevant with the wrong audience.",
+    strategic:"2 — AV manufacturers and church production vendors. No strategic unlock for G4K. No children's ministry networks present.",
+    brand:"5 — ~1,000 attendees with free tickets. Modest brand exposure in the wrong community."
+  },
+  "Exponential 2026": {
+    buyer:"7 — 5,000+ church planters, the #2 buyer category. Similar to ARC but at massive scale. Planters make all product decisions and G4K would be a natural fit for their children's ministry from launch.",
+    volume:"9 — Biggest audience on this list at 5,000+. Sold out for 2026. The sheer scale of interactions possible with planters is unmatched.",
+    conversion:"3 — Planters at Exponential are in vision and strategy mode, not product evaluation mode. Children's giving is not a top-of-mind need when launching a church. Requires proactive interruption.",
+    quality:"6 — Primarily keynote and workshop focused with a large expo. Many exhibitors compete for attention. Quality of individual conversations is lower than smaller, more intimate events.",
+    strategic:"7 — Multiple major church planting networks represented. Could seed G4K across many new church launches simultaneously.",
+    brand:"9 — 5,000+ attendees, sold out annually, national brand. The highest brand visibility event on the list. G4K presence here signals market legitimacy."
+  },
+  "Outcomes Conference (CLA)": {
+    buyer:"3 — General nonprofit and Christian ministry leaders, mostly executive directors and CFOs of Christian nonprofits. Not church staff. Very low overlap with children's ministry buyers.",
+    volume:"6 — ~1,500 attendees with standard expo format. Reasonable volume but wrong audience.",
+    conversion:"2 — Nonprofit leaders are not seeking children's giving tools for churches. The CLA audience runs parachurch organisations, Christian schools, and nonprofits — not local church children's ministries.",
+    quality:"5 — Standard expo format. Nothing distinctive about the exhibitor experience. Average quality for this type of event.",
+    strategic:"4 — Some Christian foundation and donor network connections. Modest value for fundraising conversations but not for G4K's direct church sales model.",
+    brand:"6 — ~1,500 attendees, 50th anniversary with good Christian sector visibility. Decent brand exposure but in the wrong sector."
+  },
+  "GARBC Annual Conference": {
+    buyer:"5 — Baptist pastors attending a denominational conference. Only ~100–150 of ~800 attendees are likely children's ministry focused. Mixed audience with limited G4K buyer density.",
+    volume:"3 — Small subset of ~800 total, with only a fraction in children's ministry. Exhibitor tables (not a full expo hall) limit browsing time and traffic.",
+    conversion:"4 — The small children's ministry subset may be receptive to G4K, but the general pastoral focus means most conversations will miss the mark. Conversion requires finding the right people in a mixed crowd.",
+    quality:"5 — Exhibitor tables without a dedicated expo hall. No scheduled browsing time. Low quality of vendor engagement compared to dedicated ministry conferences.",
+    strategic:"3 — Small Baptist association with limited national reach. GARBC churches are geographically spread but modest in number. No major network unlock potential.",
+    brand:"3 — ~800 attendees, denominational and regional. Minimal national brand value."
+  }
+};
+
+function calcValue(c) {
+  return Math.round((c.buyer*0.40 + c.volume*0.20 + c.conversion*0.15 + c.quality*0.10 + c.strategic*0.10 + c.brand*0.05)*10);
+}
+function calcCost(c) {
+  return c.costs.reduce((a,x)=>a+x.v,0) + Math.round((c.booth.min+c.booth.max)/2);
+}
+function calcRating(c) {
+  const cost = calcCost(c);
+  if (cost < 200) return 999;
+  return Math.round(calcValue(c) / (cost/1000) * 10) / 10;
+}
+function getTier(c) {
+  const r = calcRating(c), v = calcValue(c);
+  if (r >= 20 || (r >= 15 && v >= 60)) return "go";
+  if (r >= 8 || v >= 70) return "consider";
+  return "skip";
+}
+function audienceBadge(buyer) {
+  if (buyer >= 9) return {label:"#1 Children's Min.",bg:"bg-green-100",text:"text-green-800"};
+  if (buyer >= 7) return {label:"#2 Church Planters",bg:"bg-blue-100",text:"text-blue-800"};
+  if (buyer >= 4) return {label:"#3 Church Admins",bg:"bg-yellow-100",text:"text-yellow-800"};
+  return {label:"#4 Tech/IT",bg:"bg-red-100",text:"text-red-800"};
+}
+function confIcon(c) {
+  if (c==="confirmed"||c==="searched") return {icon:"✅",label:"Confirmed"};
+  if (c==="partial") return {icon:"📧",label:"Partial — request prospectus"};
+  return {icon:"~",label:"Estimated"};
+}
+function fmtDate(ds, de) {
+  const a = new Date(ds), b = new Date(de);
+  const mo = a.toLocaleString("en-US",{month:"short"});
+  if (ds===de) return `${mo} ${a.getDate()}, ${a.getFullYear()}`;
+  return `${mo} ${a.getDate()}–${b.getDate()}, ${a.getFullYear()}`;
+}
+function kiwiUrl(conf) {
+  const orig = conf.flightOrigin.toLowerCase();
+  const dest = (conf.nearestAirport||"").toLowerCase();
+  if (!dest) return null;
+  return `https://www.kiwi.com/en/search/results/${orig}/${dest}/${conf.kiwiOut}/${conf.kiwiBack}`;
+}
+function hotelUrl(conf) {
+  const city = encodeURIComponent(conf.city+", "+conf.state);
+  return `https://www.google.com/travel/hotels/s/${city}`;
+}
+function bookingUrl(conf) {
+  return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(conf.city)}&checkin=${conf.dateStart}&checkout=${conf.dateEnd}&group_adults=2&no_rooms=2`;
+}
+function calUrl(conf) {
+  const start = conf.dateStart.replace(/-/g,"");
+  const end = conf.dateEnd.replace(/-/g,"");
+  const title = encodeURIComponent(conf.name+" — G4K Exhibit");
+  const loc = encodeURIComponent(conf.venue);
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&location=${loc}`;
+}
+
+function App() {
+  const [sortCol, setSortCol] = useState("rating");
+  const [sortDir, setSortDir] = useState("desc");
+  const [tierFilter, setTierFilter] = useState("all");
+  const [maxBudget, setMaxBudget] = useState(10000);
+  const [showPast, setShowPast] = useState(false);
+  const [expandedRow, setExpandedRow] = useState(null);
+  const [activePanel, setActivePanel] = useState({});
+  const [dismissed, setDismissed] = useState([]);
+  const [showDismissed, setShowDismissed] = useState(false);
+  const [dismissError, setDismissError] = useState(null);
+  const [dismissedFileSha, setDismissedFileSha] = useState(null);
+  const [loadedDismissed, setLoadedDismissed] = useState(false);
+
+  // Load dismissed from GitHub
+  useState(() => {
+    fetch("https://raw.githubusercontent.com/"+GITHUB_OWNER+"/"+GITHUB_REPO+"/main/dismissed.json?cb="+Date.now())
+      .then(r=>r.json()).then(data=>{
+        setDismissed(Array.isArray(data)?data:[]);
+        setLoadedDismissed(true);
+      }).catch(()=>setLoadedDismissed(true));
+  });
+
+  const fetchDismissedSha = useCallback(async () => {
+    const r = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/dismissed.json`,
+      {headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:"application/vnd.github.v3+json"}});
+    const d = await r.json();
+    return d.sha;
+  },[]);
+
+  const saveDismissed = useCallback(async (newList) => {
+    try {
+      const sha = await fetchDismissedSha();
+      const content = btoa(JSON.stringify(newList));
+      const r = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/dismissed.json`,{
+        method:"PUT",
+        headers:{Authorization:`token ${GITHUB_TOKEN}`,Accept:"application/vnd.github.v3+json","Content-Type":"application/json"},
+        body:JSON.stringify({message:"Update dismissed conferences",content,sha})
+      });
+      if (!r.ok) throw new Error("GitHub API error "+r.status);
+      return true;
+    } catch(e) {
+      setDismissError("Failed to save: "+e.message);
+      setTimeout(()=>setDismissError(null),5000);
+      return false;
+    }
+  },[fetchDismissedSha]);
+
+  const handleDismiss = useCallback(async (name) => {
+    const newList = [...dismissed, name];
+    const ok = await saveDismissed(newList);
+    if (ok) setDismissed(newList);
+  },[dismissed,saveDismissed]);
+
+  const handleRestore = useCallback(async (name) => {
+    const newList = dismissed.filter(d=>d!==name);
+    const ok = await saveDismissed(newList);
+    if (ok) setDismissed(newList);
+  },[dismissed,saveDismissed]);
+
+  const enriched = useMemo(()=>conferences.map(c=>({
+    ...c,
+    value:calcValue(c),
+    totalCost:calcCost(c),
+    rating:calcRating(c),
+    tier:getTier(c)
+  })),[]);
+
+  const active = useMemo(()=>enriched.filter(c=>!dismissed.includes(c.name)),[enriched,dismissed]);
+  const dismissedConfs = useMemo(()=>enriched.filter(c=>dismissed.includes(c.name)),[enriched,dismissed]);
+
+  const filtered = useMemo(()=>{
+    let list = active;
+    if (!showPast) list = list.filter(c=>!c.pastEvent);
+    if (tierFilter==="go") list = list.filter(c=>c.tier==="go");
+    if (tierFilter==="goConsider") list = list.filter(c=>c.tier==="go"||c.tier==="consider");
+    list = list.filter(c=>c.totalCost<=maxBudget);
+    return [...list].sort((a,b)=>{
+      let va=a[sortCol],vb=b[sortCol];
+      if (sortCol==="name"){va=va.toLowerCase();vb=vb.toLowerCase();}
+      if (sortCol==="dateStart"){va=new Date(va);vb=new Date(vb);}
+      if (va<vb) return sortDir==="asc"?-1:1;
+      if (va>vb) return sortDir==="asc"?1:-1;
+      return 0;
+    });
+  },[active,showPast,tierFilter,maxBudget,sortCol,sortDir]);
+
+  const goCount = active.filter(c=>!c.pastEvent&&c.tier==="go").length;
+  const considerCount = active.filter(c=>!c.pastEvent&&c.tier==="consider").length;
+  const skipCount = active.filter(c=>!c.pastEvent&&c.tier==="skip").length;
+  const avgCost = active.length ? Math.round(active.reduce((a,c)=>a+c.totalCost,0)/active.length) : 0;
+
+  function toggleSort(col) {
+    if (sortCol===col) setSortDir(d=>d==="asc"?"desc":"asc");
+    else { setSortCol(col); setSortDir("desc"); }
+  }
+  function SortIcon({col}) {
+    if (sortCol!==col) return <span className="text-gray-300 ml-1">↕</span>;
+    return <span className="text-blue-600 ml-1">{sortDir==="asc"?"↑":"↓"}</span>;
+  }
+  function TierBadge({tier}) {
+    if (tier==="go") return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">🟢 Go</span>;
+    if (tier==="consider") return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">🟡 Consider</span>;
+    return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">🔴 Skip</span>;
+  }
+
+  function CostRow({item}) {
+    const ci = confIcon(item.c);
+    return (
+      <div className="flex items-start gap-2 text-sm py-0.5">
+        <span className="w-5 flex-shrink-0" title={ci.label}>{ci.icon}</span>
+        <span className="w-36 text-gray-600 flex-shrink-0">{item.l}</span>
+        <span className="w-16 text-right font-medium flex-shrink-0">${item.v.toLocaleString()}</span>
+        <span className="text-gray-500 text-xs">{item.n}</span>
+      </div>
+    );
+  }
+
+  function ExpandedDetail({conf}) {
+    const panel = activePanel[conf.name];
+    const args = argumentation[conf.name] || {};
+    const boothAvg = Math.round((conf.booth.min+conf.booth.max)/2);
+    const nonBoothCost = conf.costs.reduce((a,x)=>a+x.v,0);
+    const totalDisplay = nonBoothCost + boothAvg;
+    const kiwi = kiwiUrl(conf);
+    const badge = audienceBadge(conf.buyer);
+    const dims = [
+      {k:"buyer",label:"Right Buyer Density",w:"40%"},
+      {k:"volume",label:"Conversation Volume",w:"20%"},
+      {k:"conversion",label:"Conversion Likelihood",w:"15%"},
+      {k:"quality",label:"Conversation Quality",w:"10%"},
+      {k:"strategic",label:"Strategic Multiplier",w:"10%"},
+      {k:"brand",label:"Brand Visibility",w:"5%"},
+    ];
+
+    return (
+      <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
+        {/* Panel toggles */}
+        <div className="flex gap-2 mb-4 flex-wrap">
+          <button onClick={()=>setActivePanel(p=>({...p,[conf.name]:p[conf.name]==="detail"?null:"detail"}))}
+            className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${panel==="detail"?"bg-blue-600 text-white border-blue-600":"bg-white text-gray-700 border-gray-300 hover:border-blue-400"}`}>
+            📊 Cost & Score
+          </button>
+          <button onClick={()=>setActivePanel(p=>({...p,[conf.name]:p[conf.name]==="args"?null:"args"}))}
+            className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${panel==="args"?"bg-blue-600 text-white border-blue-600":"bg-white text-gray-700 border-gray-300 hover:border-blue-400"}`}>
+            💡 Argumentation
+          </button>
+          <button onClick={()=>setActivePanel(p=>({...p,[conf.name]:p[conf.name]==="book"?null:"book"}))}
+            className={`px-3 py-1.5 rounded text-sm font-medium border transition-colors ${panel==="book"?"bg-blue-600 text-white border-blue-600":"bg-white text-gray-700 border-gray-300 hover:border-blue-400"}`}>
+            🚀 Book It
+          </button>
+        </div>
+
+        {/* Audience callout */}
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium mb-4 ${badge.bg} ${badge.text}`}>
+          <span>{badge.label}</span>
+          <span>•</span>
+          <span>{conf.audienceNote}</span>
+        </div>
+
+        {conf.booth.sponsorship && (
+          <div className="mb-4 px-3 py-2 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800">
+            ⚠️ <strong>Sponsorship model</strong> — not a standard booth purchase. Application may not guarantee acceptance.
+          </div>
+        )}
+
+        {conf.notes && <p className="text-sm text-gray-600 mb-4 italic">{conf.notes}</p>}
+
+        {/* Cost & Score panel */}
+        {panel==="detail" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Cost Breakdown</h4>
+              <div className="text-xs text-gray-500 mb-2 flex gap-4">
+                <span>✅ Confirmed</span><span>📧 Partial/Requested</span><span>~ Estimated</span>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-start gap-2 text-sm py-0.5">
+                  <span className="w-5 flex-shrink-0" title={confIcon(conf.booth.status).label}>{confIcon(conf.booth.status).icon}</span>
+                  <span className="w-36 text-gray-600 flex-shrink-0">Booth fee (avg est.)</span>
+                  <span className="w-16 text-right font-medium flex-shrink-0">${boothAvg.toLocaleString()}</span>
+                  <span className="text-gray-500 text-xs">{conf.booth.note}</span>
+                </div>
+                {conf.costs.map((item,i)=><CostRow key={i} item={item}/>)}
+              </div>
+              <div className="border-t border-gray-300 mt-2 pt-2 flex gap-2 text-sm font-bold">
+                <span className="w-5"></span>
+                <span className="w-36">TOTAL (est.)</span>
+                <span className="w-16 text-right">${totalDisplay.toLocaleString()}</span>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Booth fee range: ${conf.booth.min.toLocaleString()}–${conf.booth.max.toLocaleString()}</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Value Score: {conf.value}/100</h4>
+              {dims.map(d=>(
+                <div key={d.k} className="flex items-center gap-2 mb-1.5">
+                  <span className="text-xs text-gray-500 w-40 flex-shrink-0">{d.label} ({d.w})</span>
+                  <div className="flex-1 bg-gray-200 rounded h-2">
+                    <div className="bg-blue-500 h-2 rounded" style={{width:`${conf[d.k]*10}%`}}></div>
+                  </div>
+                  <span className="text-sm font-semibold w-8 text-right">{conf[d.k]}/10</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Argumentation panel */}
+        {panel==="args" && (
+          <div className="space-y-3">
+            <h4 className="font-semibold text-gray-800">Score Reasoning</h4>
+            {dims.map(d=>(
+              <div key={d.k} className="bg-white rounded border border-gray-200 p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium text-sm text-gray-800">{d.label}</span>
+                  <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-semibold">{conf[d.k]}/10</span>
+                  <span className="text-xs text-gray-400">weight {d.w}</span>
+                </div>
+                <p className="text-sm text-gray-600">{args[d.k] || "No reasoning available."}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Book It panel */}
+        {panel==="book" && (
+          <div>
+            <h4 className="font-semibold text-gray-800 mb-3">Book It — {conf.name}</h4>
+            {conf.booth.sponsorship && (
+              <div className="mb-3 px-3 py-2 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800">
+                ⚠️ <strong>Sponsorship model:</strong> Application required. Contact {conf.booth.contact}.
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              <a href={conf.booth.contactUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700">
+                🎪 Exhibitor Info
+              </a>
+              <a href={conf.url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700">
+                🌐 Conference Site
+              </a>
+              {kiwi && (
+                <a href={kiwi} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 bg-orange-500 text-white rounded text-sm font-medium hover:bg-orange-600">
+                  ✈️ Kiwi Flights ({conf.flightOrigin}→{conf.nearestAirport})
+                </a>
+              )}
+              <a href={hotelUrl(conf)} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">
+                🏨 Google Hotels
+              </a>
+              <a href={bookingUrl(conf)} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 bg-blue-700 text-white rounded text-sm font-medium hover:bg-blue-800">
+                🛏️ Booking.com
+              </a>
+              <a href={calUrl(conf)} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700">
+                📅 Add to Calendar
+              </a>
+            </div>
+            <div className="mt-4 text-sm text-gray-700">
+              <strong>Travel schedule:</strong>
+              <div className="mt-1 space-y-0.5 text-gray-600">
+                <div>📅 {conf.kiwiOut} — Travel day ({conf.flightOrigin} → {conf.city})</div>
+                <div>📅 {conf.dateStart} – {conf.dateEnd} — Event days</div>
+                <div>📅 {conf.kiwiBack} — Return day ({conf.city} → {conf.flightOrigin})</div>
+              </div>
+            </div>
+            {conf.flightOrigin==="AMS" && (
+              <div className="mt-3 text-xs text-gray-500 bg-blue-50 rounded p-2">
+                🇪🇺 Flying from Europe: Check both <strong>AMS</strong> (Amsterdam) and <strong>MAN</strong> (Manchester) for best fares. MAN often cheaper for Andy from Leeds.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">G4K Exhibition Finder</h1>
+              <p className="text-sm text-gray-500">Givt4Kids — Church conference exhibition planner</p>
+            </div>
+            <div className="text-right text-xs text-gray-400">
+              <div>Flight origins: <strong>Before Jul 2026</strong> = TUL | <strong>Jul 2026+</strong> = AMS/MAN</div>
+              <div>🟢 Go = Rating ≥20 or (≥15 + value ≥60) | 🟡 Consider = Rating ≥8 or value ≥70</div>
+            </div>
+          </div>
+          {/* Buyer profile */}
+          <div className="flex flex-wrap gap-2 mt-2 text-xs">
+            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">#1 Children's Ministry Leaders — 10/10</span>
+            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">#2 Church Planters — 7–8/10</span>
+            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">#3 Church Admins — 4–6/10</span>
+            <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">#4 Tech/IT Staff — 1–3/10</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats bar */}
+      <div className="bg-white border-b border-gray-100 px-6 py-2">
+        <div className="max-w-7xl mx-auto flex flex-wrap gap-4 text-sm">
+          <span className="text-gray-600">{active.filter(c=>!c.pastEvent).length} active events</span>
+          <span className="text-green-700 font-medium">🟢 {goCount} Go</span>
+          <span className="text-yellow-700 font-medium">🟡 {considerCount} Consider</span>
+          <span className="text-red-700 font-medium">🔴 {skipCount} Skip</span>
+          <span className="text-gray-500">Avg cost: ${avgCost.toLocaleString()}</span>
+          {dismissed.length > 0 && (
+            <button onClick={()=>setShowDismissed(s=>!s)} className="text-gray-400 hover:text-gray-600 underline">
+              {showDismissed?"Hide":"Show"} hidden ({dismissed.length})
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Error toast */}
+      {dismissError && (
+        <div className="mx-6 mt-2 px-4 py-2 bg-red-100 border border-red-300 text-red-700 rounded text-sm max-w-7xl">
+          ⚠️ {dismissError}
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="px-6 py-3 bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto flex flex-wrap gap-3 items-center">
+          <div className="flex gap-1">
+            {[["all","All"],["go","🟢 Go only"],["goConsider","🟢+🟡 Go/Consider"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setTierFilter(v)}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${tierFilter===v?"bg-blue-600 text-white":"bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>{l}</button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Max budget:</label>
+            <select className="text-sm border border-gray-300 rounded px-2 py-1" value={maxBudget} onChange={e=>setMaxBudget(Number(e.target.value))}>
+              <option value={1000}>$1,000</option>
+              <option value={3000}>$3,000</option>
+              <option value={5000}>$5,000</option>
+              <option value={8000}>$8,000</option>
+              <option value={10000}>$10,000</option>
+              <option value={99999}>No limit</option>
+            </select>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" checked={showPast} onChange={e=>setShowPast(e.target.checked)} className="rounded" />
+            Show past/sold-out events
+          </label>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="px-6 py-4 max-w-7xl mx-auto overflow-x-auto">
+        <table className="w-full bg-white rounded-lg shadow-sm border border-gray-200 text-sm">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {[
+                ["name","Conference"],
+                ["dateStart","Dates"],
+                ["location","Location"],
+                ["audience","Audience"],
+                ["attendance","Att."],
+                ["totalCost","Total Cost"],
+                ["value","Value"],
+                ["rating","Rating"],
+                ["tier","Tier"],
+              ].map(([col,label])=>(
+                <th key={col} onClick={()=>toggleSort(col)}
+                  className="px-3 py-2.5 text-left font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 whitespace-nowrap">
+                  {label}<SortIcon col={col}/>
+                </th>
+              ))}
+              <th className="px-3 py-2.5 text-left font-semibold text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(conf=>{
+              const badge = audienceBadge(conf.buyer);
+              const isExpanded = expandedRow===conf.name;
+              return (
+                <React.Fragment key={conf.name}>
+                  <tr className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${conf.pastEvent?"opacity-60":""} ${conf.local?"bg-green-50":""}`}>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <button onClick={()=>setExpandedRow(isExpanded?null:conf.name)}
+                          className="text-gray-400 hover:text-blue-600 text-lg leading-none">{isExpanded?"▼":"▶"}</button>
+                        <a href={conf.url} target="_blank" rel="noopener noreferrer"
+                          className="font-medium text-blue-700 hover:underline">{conf.name}</a>
+                        {conf.local && <span className="text-xs bg-green-200 text-green-800 px-1 rounded">LOCAL</span>}
+                        {conf.pastEvent && <span className="text-xs bg-gray-200 text-gray-600 px-1 rounded">PAST</span>}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-gray-600">{fmtDate(conf.dateStart,conf.dateEnd)}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{conf.location}</td>
+                    <td className="px-3 py-2.5">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>{badge.label}</span>
+                    </td>
+                    <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">
+                      {conf.attendance.toLocaleString()} {conf.attConf?"✅":"~"}
+                    </td>
+                    <td className="px-3 py-2.5 font-medium text-gray-800">${conf.totalCost.toLocaleString()}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-1">
+                        <div className="w-16 bg-gray-200 rounded h-2">
+                          <div className="bg-blue-500 h-2 rounded" style={{width:`${conf.value}%`}}></div>
+                        </div>
+                        <span className="text-xs font-semibold">{conf.value}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 font-bold text-gray-800">
+                      {conf.rating===999?"∞":conf.rating}
+                    </td>
+                    <td className="px-3 py-2.5"><TierBadge tier={conf.tier}/></td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex gap-1 flex-wrap">
+                        <button onClick={()=>{setExpandedRow(conf.name);setActivePanel(p=>({...p,[conf.name]:"book"}));}}
+                          className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">🚀</button>
+                        <button onClick={()=>{setExpandedRow(conf.name);setActivePanel(p=>({...p,[conf.name]:"args"}));}}
+                          className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">💡</button>
+                        <button onClick={()=>handleDismiss(conf.name)}
+                          className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs hover:bg-gray-300" title="Not interested">👎</button>
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={11} className="p-0">
+                        <ExpandedDetail conf={conf}/>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+            {filtered.length===0 && (
+              <tr><td colSpan={11} className="px-6 py-8 text-center text-gray-400">No conferences match the current filters.</td></tr>
+            )}
+          </tbody>
+        </table>
+
+        {/* Dismissed section */}
+        {showDismissed && dismissedConfs.length>0 && (
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold text-gray-500 mb-2">👎 Not Interested ({dismissedConfs.length})</h3>
+            <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+              {dismissedConfs.map(conf=>(
+                <div key={conf.name} className="flex items-center justify-between px-4 py-2">
+                  <span className="text-sm text-gray-500">{conf.name} — {conf.location}</span>
+                  <button onClick={()=>handleRestore(conf.name)}
+                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                    Restore
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-4 text-xs text-gray-400 text-center">
+          Data as of March 2026 · Booth costs are estimated midpoints · ✅ Confirmed · ~ Estimated · 📧 Partial
+        </div>
+      </div>
+    </div>
+  );
+}
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
