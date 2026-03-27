@@ -12,8 +12,7 @@
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
-import { useState, useMemo, useCallback } from "react";
-
+const { useState, useMemo, useCallback } = React;
 // Token injected at deploy time — see deploy script
 const GITHUB_TOKEN = ('ghp_7yz9GO9Gz9EJa93r'+ 'RLdekavvRVRBnh0Auy1a');
 const GITHUB_OWNER = 'sivanoort-coder';
@@ -486,7 +485,7 @@ function calUrl(conf) {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&location=${loc}`;
 }
 
-export default function App() {
+function App() {
   const [sortCol, setSortCol] = useState("rating");
   const [sortDir, setSortDir] = useState("desc");
   const [tierFilter, setTierFilter] = useState("all");
